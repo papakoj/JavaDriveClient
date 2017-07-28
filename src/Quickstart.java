@@ -10,8 +10,14 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.*;
 
 import com.google.api.services.drive.Drive;
+
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 public class Quickstart {
@@ -23,7 +29,7 @@ public class Quickstart {
 
 	/** Directory to store user credentials for this application. */
 	private static final java.io.File DATA_STORE_DIR = new java.io.File(
-			System.getProperty("user.home"), ".credentials/drive-java-quickstart");
+			System.getProperty("user.home"), ".credentials/drive-java-client");
 
 	/** Global instance of the {@link FileDataStoreFactory}. */
 	private static FileDataStoreFactory DATA_STORE_FACTORY;
@@ -51,6 +57,9 @@ public class Quickstart {
 			System.exit(1);
 		}
 	}
+	
+	private static final String clientId = "674687944100-u4kb04n3he0bf1ov7i9lvbjvdjibnfth.apps.googleusercontent.com";
+	private static final String clientSecret = "LpktuURsaOVJ9C3bLt0cn0FV";
 
 	/**
 	 * Creates an authorized Credential object.
@@ -72,6 +81,36 @@ public class Quickstart {
 		//				.setAccessType("offline")
 		//				.build();
 
+		JSONParser parser = new JSONParser();
+
+                 Object obj = null;
+				try {
+					obj = parser.parse(new FileReader(DATA_STORE_DIR));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					System.out.println("No credentials found");
+				}
+            JSONObject jsonObject = (JSONObject) obj;
+            System.out.println(jsonObject);
+
+            String accessToken = (String) jsonObject.get("access_token");
+
+            String refreshToken = (String) jsonObject.get("refresh_token");
+      
+		GoogleCredential credential = 
+				new GoogleCredential.Builder()
+				.setTransport(HTTP_TRANSPORT)
+				.setJsonFactory(JSON_FACTORY)
+				.setClientSecrets(clientId, clientSecret).build();
+		credential.setAccessToken(accessToken);
+		credential.setRefreshToken(refreshToken);
+		//		Credential credential = new AuthorizationCodeInstalledApp(
+		//				flow, new LocalServerReceiver()).authorize("user");
+		System.out.println(
+				"Credentials saved to " + DATA_STORE_DIR.getAbsolutePath());
+		return credential;
+	}
 
 	/**
 	 * Build and return an authorized Drive client service.
