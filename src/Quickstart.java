@@ -4,7 +4,6 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.*;
@@ -31,9 +30,6 @@ public class Quickstart {
 	private static final java.io.File DATA_STORE_DIR = new java.io.File(
 			System.getProperty("user.home"), ".credentials/drive-java-client");
 
-	/** Global instance of the {@link FileDataStoreFactory}. */
-	private static FileDataStoreFactory DATA_STORE_FACTORY;
-
 	/** Global instance of the JSON factory. */
 	private static final JsonFactory JSON_FACTORY =
 			JacksonFactory.getDefaultInstance();
@@ -44,14 +40,13 @@ public class Quickstart {
 	/** Global instance of the scopes required by this quickstart.
 	 *
 	 * If modifying these scopes, delete your previously saved credentials
-	 * at ~/.credentials/drive-java-quickstart
+	 * at ~/.credentials/drive-java-client
 	 */
 	private static final java.util.Collection<String> SCOPES =
 			DriveScopes.all();
 	static {
 		try {
 			HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-			DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
 		} catch (Throwable t) {
 			t.printStackTrace();
 			System.exit(1);
@@ -67,19 +62,6 @@ public class Quickstart {
 	 * @throws IOException
 	 */
 	public static Credential authorize() throws IOException {
-		// Load client secrets.
-		//		InputStream in =
-		//				Quickstart.class.getResourceAsStream("client_secret.json");
-		//		GoogleClientSecrets clientSecrets =
-		//				GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-		//
-		//		// Build flow and trigger user authorization request.
-		//		GoogleAuthorizationCodeFlow flow =
-		//				new GoogleAuthorizationCodeFlow.Builder(
-		//						HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-		//				.setDataStoreFactory(DATA_STORE_FACTORY)
-		//				.setAccessType("offline")
-		//				.build();
 
 		JSONParser parser = new JSONParser();
 
@@ -90,6 +72,7 @@ public class Quickstart {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 					System.out.println("No credentials found");
+					System.out.println("Please re-authenticate the application");
 				}
             JSONObject jsonObject = (JSONObject) obj;
             System.out.println(jsonObject);
@@ -124,6 +107,30 @@ public class Quickstart {
 				.setApplicationName(APPLICATION_NAME)
 				.build();
 	}
+	
+	public static void syncDrive(java.io.File storeDirectory) {
+		Drive service = null;
+		try {
+			service = getDriveService();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		 
+		    	GoogleConnector gC = null;
+				try {
+					gC = new GoogleConnector(service);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+		    	try {
+					List<File> rootList = gC.downloadRootFolders(storeDirectory);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	}
 
 
 	public static void main(String[] args) throws IOException {
@@ -133,7 +140,7 @@ public class Quickstart {
 
 		// Print the names and IDs for up to 10 files.
 		FileList result = service.files().list()
-				.setFields("nextPageToken, files(id, name)")
+				.setFields("nextPageToken, files(createdTime,description,id,kind,modifiedTime,name,parents),kind")
 				.execute();
 
 		result.getClass();
@@ -143,7 +150,8 @@ public class Quickstart {
 		} else {
 			System.out.println("Files:");
 			for (File file : files) {
-				System.out.printf("%s  %s (%s)\n", file.getName(), file.getKind(), file.getId());
+				if (file.getParents() != null && file.getParents().contains("root"))
+				System.out.printf("%s  %s (%s)\n", file.getName(), file.getParents(), file.getId());
 			}
 		}
 

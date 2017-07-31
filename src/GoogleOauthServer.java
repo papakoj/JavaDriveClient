@@ -1,7 +1,7 @@
-import java.io.FileOutputStream;
+import java.awt.Desktop;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.collect.ImmutableMap;
 
-public class GoogleOauthServer {
+public class GoogleOauthServer implements Runnable {
 
 	private Server server = new Server(8089);
 
@@ -46,38 +46,62 @@ public class GoogleOauthServer {
 	private static final java.io.File DATA_STORE_DIR = new java.io.File(
 			System.getProperty("user.home"), ".credentials/drive-java-client");
 
-
+	public static boolean isDone = false;
+	
 	public static void main(String[] args) throws Exception {
 		new GoogleOauthServer().startJetty();
 	}
 
-	public void startJetty() throws Exception {
+	public String startJetty() throws Exception {
 
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("./");
 		server.setHandler(context);
+		server.setStopTimeout(3000L);
 
 		// map servlets to endpoints
 		context.addServlet(new ServletHolder(new SigninServlet()),"/signin");        
 		context.addServlet(new ServletHolder(new CallbackServlet()),"/callback");        
 
 		server.start();
-		server.join();
+		openWebpage(URI.create("http:localhost:8089/signin"));
+//		server.join();
+		while (!isDone) { Thread.sleep(1000); }
+		System.out.println("finished");
+		server.stop();
+		return "finished";
 	}
+	
+    public static void openWebpage(URI uri) {
+    	if (Desktop.isDesktopSupported()) {
+    		try {
+				Desktop.getDesktop().browse(uri);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	} else {
+    		Runtime runtime = Runtime.getRuntime();
+    		try {
+				runtime.exec("xdg-open http://" + uri.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}	
+    }
 
 	class SigninServlet extends HttpServlet {
 		List<String> scopes = Arrays.asList("openid", "email", "https://www.googleapis.com/auth/drive.appdata", "https://www.googleapis.com/auth/drive.scripts", "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive.metadata.readonly", "https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.metadata", "https://www.googleapis.com/auth/drive.photos.readonly");
-
 		
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,IOException {
-
 			// redirect to google for authorization
 			StringBuilder oauthUrl = new StringBuilder().append("https://accounts.google.com/o/oauth2/auth")
 					.append("?client_id=").append(clientId) // the client id from the api console registration
 					.append("&response_type=code")
 					.append("&redirect_uri=http://localhost:8089/callback") // the servlet that google redirects to after authorization
-					.append("&state=this_can_be_anything_to_help_correlate_the_response%3Dlike_session_id")
+//					.append("&state=this_can_be_anything_to_help_correlate_the_response%3Dlike_session_id")
 					.append("&scope=openid%20profile%20email%20https://www.googleapis.com/auth/drive%20https://www.googleapis.com/auth/drive.metadata%20https://www.googleapis.com/auth/drive.file%20https://www.googleapis.com/auth/drive.metadata")
 					.append("&access_type=offline") // here we are asking to access to user's data while they are not signed in
 					.append("&approval_prompt=force"); // this requires them to verify which account to use, if they are already signed in
@@ -114,6 +138,9 @@ public class GoogleOauthServer {
 			
 			try(  PrintWriter out = new PrintWriter(DATA_STORE_DIR)  ){
 			    out.println(body);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			JSONObject jsonObject = null;
@@ -137,8 +164,10 @@ public class GoogleOauthServer {
 			// now we could store the email address in session
 
 			// return the json of the user's basic info
-			resp.getWriter().println(json);
-		} 
+			
+			resp.getWriter().println("Thanks for authorizing. You can close this tab now.");
+		    isDone = true;
+		}
 	}
 
 	// makes a GET request to url and returns body as a string
@@ -174,5 +203,19 @@ public class GoogleOauthServer {
 		}
 
 		return body;
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		try {
+			main(null);
+			while (!Thread.currentThread().isInterrupted()) {}
+			System.out.println("done");
+			return;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
