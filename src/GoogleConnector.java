@@ -2,6 +2,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -18,6 +19,8 @@ public class GoogleConnector implements Connector<File> {
 
 	private Drive service;
 
+	private HashMap<String, MyFile> index = new HashMap<>();
+
 	public GoogleConnector(Drive service) throws IOException {
 		this.service = service;
 	}
@@ -32,7 +35,6 @@ public class GoogleConnector implements Connector<File> {
 		if (files == null || files.size() == 0) {
 			System.out.println("No files found.");
 		} else {
-			System.out.println("Files:");
 			for (File file : files) {
 				//				System.out.printf("%s (%s)\n", file.getName(), file.getId());
 			}
@@ -43,7 +45,6 @@ public class GoogleConnector implements Connector<File> {
 
 	public List<File> downloadRootFolders(java.io.File storeDirectory) throws IOException {
 		String id = service.files().get("root").setFields("id").execute().getId();
-		System.out.println(id);
 		FileList result = this.service.files().list()
 				.setFields("nextPageToken, files(description,id,kind,mimeType,modifiedTime,name,parents,properties),kind")
 				.execute();
@@ -51,11 +52,8 @@ public class GoogleConnector implements Connector<File> {
 		if (files == null || files.size() == 0) {
 			System.out.println("No files found.");
 		} else {
-			System.out.println("Files:");
 			for (File file : files) {
 				if (file.getParents() != null && file.getParents().toString().contains(id)) {
-					System.out.printf("%s (%s)\n", file.getName(), file.getId());
-					System.out.println(file.getMimeType());
 					if (file.getMimeType().contains("folder")) {
 						java.io.File g = new java.io.File(storeDirectory.getAbsolutePath() + "/" + file.getName());
 						g.mkdirs();
@@ -69,6 +67,7 @@ public class GoogleConnector implements Connector<File> {
 		return files;
 	}
 
+	
 	public List<File> downloadFilesInFolder(String id, java.io.File folderPath) throws IOException {
 		FileList result = this.service.files().list()
 				.setQ("'" + id + "' in parents")
@@ -85,7 +84,6 @@ public class GoogleConnector implements Connector<File> {
 					g.mkdirs();
 					downloadFilesInFolder(file.getId(), g);
 				} else {
-					System.out.println(file.getName());
 					get(file, file.getId(), new java.io.File(folderPath.getAbsolutePath() + "/" + file.getName()), "text/plain");
 				}
 			}
@@ -93,32 +91,63 @@ public class GoogleConnector implements Connector<File> {
 		return files;
 	}
 
-
-
-
-
-	public InputStream get1(String key) throws IOException{
+	
+	public InputStream get1(String key) throws IOException {
 		throw new UnsupportedOperationException("Method get1 is not supported by GDrive");
 	}
+	
 
 	public InputStream get(String key) throws IOException{
 		return service.files().get(key).executeMediaAsInputStream();
 	}
+	
+
+	public void indexFiles() {
+		index.clear();
+		FileList result = null;
+		try {
+			result = this.service.files().list()
+					.setFields("nextPageToken, files(id,name,modifiedTime,mimeType)")
+					.execute();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<File> files = result.getFiles();
+		if (files == null || files.size() == 0) {
+			System.out.println("No files found.");
+		} else {
+			for (File file : files) {
+				if (!file.getMimeType().contains("folder")) {
+					if (!index.containsKey(file.getId())) {
+						MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
+						index.put(file.getId(), myFile);
+						System.out.println(myFile.toString());
+					}
+				}
+			}
+		}
+	}
 
 	public Long get(File file, String key, java.io.File tempFile, String type) throws IOException{
-		System.out.println(service.files().get(key).execute().getMimeType());
 		if (!service.files().get(key).execute().getMimeType().contains("google-apps")) {
-			try (InputStream input = service.files().get(key).executeMediaAsInputStream()) {
-				try (OutputStream outputStream = new FileOutputStream(tempFile)) {
-					return (long) IOUtils.copy(input, outputStream);
+			if (!index.containsKey(file.getId()) || (changedFile(file))) {
+				try (InputStream input = service.files().get(key).executeMediaAsInputStream()) {
+					try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+						long ret = IOUtils.copy(input, outputStream);
+						MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
+						index.put(file.getId(), myFile);
+						return ret;
+					}
+				} catch (IOException e) {
+					// Log something
+					throw e;
 				}
-			} catch (IOException e) {
-				// Log something
-				throw e;
 			}
 		} else {
 			return getGDocs(file, key, tempFile, type);
 		}
+		return null;
 	}
 
 	public Long getGDocs(File file, String key, java.io.File tempFile, String type) throws IOException {	
@@ -127,14 +156,34 @@ public class GoogleConnector implements Connector<File> {
 		if (file.getMimeType().equals("application/vnd.google-apps.script")) {type = "application/vnd.google-apps.script+json";}
 		if (file.getMimeType().equals("application/vnd.google-apps.presentation")) {type = "application/vnd.oasis.opendocument.presentation";}
 		if (file.getMimeType().equals("application/vnd.google-apps.spreadsheet")) {type = "application/x-vnd.oasis.opendocument.spreadsheet";}
-		try (InputStream input = service.files().export(key, type).executeMediaAsInputStream()) {
-			try (OutputStream outputStream = new FileOutputStream(tempFile)) {
-				return (long) IOUtils.copy(input, outputStream);
+		if (!index.containsKey(file.getId()) || (changedFile(file))) {
+			try (InputStream input = service.files().export(key, type).executeMediaAsInputStream()) {
+				try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+					long ret = IOUtils.copy(input, outputStream);
+					System.out.printf("%s was last modified at %s\n", file.getName(), file.getModifiedTime().toString());
+					MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
+					index.put(file.getId(), myFile);
+					return ret;
+				}
+			} catch (IOException e) {
+				// Log something
+				throw e;
+			} 
+		} 
+		return null;
+	}
+
+	public boolean changedFile(File file) {
+		if (index.containsKey(file.getId())) {
+			MyFile f = index.get(file.getId());
+			System.out.println("why is it this " + f.toString());
+			System.out.println(file.getModifiedTime().toString());
+			if (f.getLastModified().getValue() < file.getModifiedTime().getValue()) {
+//				System.out.println("changed" + file.getName());
+				return true;
 			}
-		} catch (IOException e) {
-			// Log something
-			throw e;
 		}
+		return false;
 	}
 
 	public String put(java.io.File localFile) throws IOException{

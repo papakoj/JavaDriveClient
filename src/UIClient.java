@@ -76,15 +76,18 @@ public class UIClient extends Application {
 			Scene loggedInScene = new Scene(loggedinGrid, 300, 250);
 			Button selectStorage = new Button("Select storage location");
 			selectStorage.setOnAction(new EventHandler<ActionEvent>() {
-
+			Quickstart quickstart = new Quickstart();
+	
+		
 				@Override
 				public void handle(ActionEvent event) {
-					DirectoryChooser directoryChooser = new DirectoryChooser();
-					directoryChooser.setTitle("Select storage location");
-					directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-					File f = directoryChooser.showDialog(primaryStage);
+//					DirectoryChooser directoryChooser = new DirectoryChooser();
+//					directoryChooser.setTitle("Select storage location");
+//					directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+//					File f = directoryChooser.showDialog(primaryStage);
+					File f = new File(System.getProperty("user.home"));
 					if (f != null) {
-						Quickstart quickstart = new Quickstart();
+						quickstart.index();
 						quickstart.syncDrive(f);
 					}
 				}

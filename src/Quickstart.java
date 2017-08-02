@@ -52,7 +52,20 @@ public class Quickstart {
 			System.exit(1);
 		}
 	}
+
+	private static Drive service;
+	private static GoogleConnector gC;
 	
+
+	public Quickstart() {
+		try {
+			this.service = getDriveService();
+			this.gC = new GoogleConnector(service);
+		} catch (IOException e) {
+			System.out.println("welp we failed");;
+		}
+	}
+
 	private static final String clientId = "674687944100-u4kb04n3he0bf1ov7i9lvbjvdjibnfth.apps.googleusercontent.com";
 	private static final String clientSecret = "LpktuURsaOVJ9C3bLt0cn0FV";
 
@@ -65,22 +78,22 @@ public class Quickstart {
 
 		JSONParser parser = new JSONParser();
 
-                 Object obj = null;
-				try {
-					obj = parser.parse(new FileReader(DATA_STORE_DIR));
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					System.out.println("No credentials found");
-					System.out.println("Please re-authenticate the application");
-				}
-            JSONObject jsonObject = (JSONObject) obj;
-            System.out.println(jsonObject);
+		Object obj = null;
+		try {
+			obj = parser.parse(new FileReader(DATA_STORE_DIR));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("No credentials found");
+			System.out.println("Please re-authenticate the application");
+		}
+		JSONObject jsonObject = (JSONObject) obj;
+		System.out.println(jsonObject);
 
-            String accessToken = (String) jsonObject.get("access_token");
+		String accessToken = (String) jsonObject.get("access_token");
 
-            String refreshToken = (String) jsonObject.get("refresh_token");
-      
+		String refreshToken = (String) jsonObject.get("refresh_token");
+
 		GoogleCredential credential = 
 				new GoogleCredential.Builder()
 				.setTransport(HTTP_TRANSPORT)
@@ -107,29 +120,18 @@ public class Quickstart {
 				.setApplicationName(APPLICATION_NAME)
 				.build();
 	}
+
+	public static void index() {
+		gC.indexFiles();
+	}
 	
 	public static void syncDrive(java.io.File storeDirectory) {
-		Drive service = null;
 		try {
-			service = getDriveService();
-		} catch (IOException e1) {
+			List<File> rootList = gC.downloadRootFolders(storeDirectory);
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
-		 
-		    	GoogleConnector gC = null;
-				try {
-					gC = new GoogleConnector(service);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}	
-		    	try {
-					List<File> rootList = gC.downloadRootFolders(storeDirectory);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 	}
 
 
@@ -151,7 +153,7 @@ public class Quickstart {
 			System.out.println("Files:");
 			for (File file : files) {
 				if (file.getParents() != null && file.getParents().contains("root"))
-				System.out.printf("%s  %s (%s)\n", file.getName(), file.getParents(), file.getId());
+					System.out.printf("%s  %s (%s)\n", file.getName(), file.getParents(), file.getId());
 			}
 		}
 
