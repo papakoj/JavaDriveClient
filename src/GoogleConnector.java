@@ -16,6 +16,8 @@ import com.google.api.services.drive.model.FileList;
 //import utils.IOUtils;
 
 public class GoogleConnector implements Connector<File> {
+	
+	private boolean initialDownload;
 
 	private Drive service;
 
@@ -64,6 +66,7 @@ public class GoogleConnector implements Connector<File> {
 				}
 			}
 		}
+		initialDownload = false;
 		return files;
 	}
 
@@ -104,6 +107,7 @@ public class GoogleConnector implements Connector<File> {
 
 	public void indexFiles() {
 		index.clear();
+		initialDownload = true;
 		FileList result = null;
 		try {
 			result = this.service.files().list()
@@ -122,7 +126,7 @@ public class GoogleConnector implements Connector<File> {
 					if (!index.containsKey(file.getId())) {
 						MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
 						index.put(file.getId(), myFile);
-						System.out.println(myFile.toString());
+//						System.out.println(myFile.toString());
 					}
 				}
 			}
@@ -131,9 +135,10 @@ public class GoogleConnector implements Connector<File> {
 
 	public Long get(File file, String key, java.io.File tempFile, String type) throws IOException{
 		if (!service.files().get(key).execute().getMimeType().contains("google-apps")) {
-			if (!index.containsKey(file.getId()) || (changedFile(file))) {
+			if (initialDownload || !index.containsKey(file.getId()) || (changedFile(file))) {
 				try (InputStream input = service.files().get(key).executeMediaAsInputStream()) {
 					try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+						System.out.println("downloading" + file.getName());
 						long ret = IOUtils.copy(input, outputStream);
 						MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
 						index.put(file.getId(), myFile);
@@ -156,11 +161,11 @@ public class GoogleConnector implements Connector<File> {
 		if (file.getMimeType().equals("application/vnd.google-apps.script")) {type = "application/vnd.google-apps.script+json";}
 		if (file.getMimeType().equals("application/vnd.google-apps.presentation")) {type = "application/vnd.oasis.opendocument.presentation";}
 		if (file.getMimeType().equals("application/vnd.google-apps.spreadsheet")) {type = "application/x-vnd.oasis.opendocument.spreadsheet";}
-		if (!index.containsKey(file.getId()) || (changedFile(file))) {
+		if (initialDownload || !index.containsKey(file.getId()) || (changedFile(file))) {
 			try (InputStream input = service.files().export(key, type).executeMediaAsInputStream()) {
 				try (OutputStream outputStream = new FileOutputStream(tempFile)) {
 					long ret = IOUtils.copy(input, outputStream);
-					System.out.printf("%s was last modified at %s\n", file.getName(), file.getModifiedTime().toString());
+					System.out.println("downloading" + file.getName());
 					MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
 					index.put(file.getId(), myFile);
 					return ret;
@@ -174,16 +179,12 @@ public class GoogleConnector implements Connector<File> {
 	}
 
 	public boolean changedFile(File file) {
-		if (index.containsKey(file.getId())) {
 			MyFile f = index.get(file.getId());
-			System.out.println("why is it this " + f.toString());
-			System.out.println(file.getModifiedTime().toString());
 			if (f.getLastModified().getValue() < file.getModifiedTime().getValue()) {
 //				System.out.println("changed" + file.getName());
 				return true;
 			}
-		}
-		return false;
+			return false;
 	}
 
 	public String put(java.io.File localFile) throws IOException{

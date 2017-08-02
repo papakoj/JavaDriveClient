@@ -75,24 +75,35 @@ public class UIClient extends Application {
 			GridPane loggedinGrid = new GridPane();
 			Scene loggedInScene = new Scene(loggedinGrid, 300, 250);
 			Button selectStorage = new Button("Select storage location");
+			final Quickstart quickstart = new Quickstart();
 			selectStorage.setOnAction(new EventHandler<ActionEvent>() {
-			Quickstart quickstart = new Quickstart();
-	
-		
+			
 				@Override
 				public void handle(ActionEvent event) {
 //					DirectoryChooser directoryChooser = new DirectoryChooser();
 //					directoryChooser.setTitle("Select storage location");
 //					directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
 //					File f = directoryChooser.showDialog(primaryStage);
-					File f = new File(System.getProperty("user.home"));
-					if (f != null) {
+//					File f = new File(System.getProperty("user.home"));
+					if (Constants.testFolder != null) {
 						quickstart.index();
-						quickstart.syncDrive(f);
+						quickstart.syncDrive(Constants.testFolder);
+					}
+				}
+			});
+			
+			Button reSync = new Button("ReSync");
+			reSync.setOnAction(new EventHandler<ActionEvent>() {
+			
+				@Override
+				public void handle(ActionEvent event) {
+					if (Constants.testFolder != null) {
+						quickstart.syncDrive(Constants.testFolder);
 					}
 				}
 			});
 			loggedinGrid.add(selectStorage, 0, 0);
+			loggedinGrid.add(reSync, 0, 1);
 			primaryStage.setScene(loggedInScene);
 			primaryStage.show();
 		
