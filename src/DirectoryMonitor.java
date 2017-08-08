@@ -56,7 +56,7 @@ public class DirectoryMonitor implements AutoCloseable, Runnable {
 	}
 
 	private class MonitorService extends Thread {
-		private DirectoryMonitor service;
+//		private DirectoryMonitor service;
 		private WatchService watcher;
 		private Map<WatchKey, Path> keys;
 
@@ -123,7 +123,7 @@ public class DirectoryMonitor implements AutoCloseable, Runnable {
 		 * @throws MachinicServerException 
 		 * @throws MachinicClientException 
 		 */
-		@SuppressWarnings("deprecation")
+//		@SuppressWarnings("deprecation")
 		void processEvents() throws IOException {
 			// wait for key to be signaled
 			WatchKey key;

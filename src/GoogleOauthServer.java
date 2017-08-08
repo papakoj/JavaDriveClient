@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -25,8 +24,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-//import org.apache.http.message.BasicNameValuePair;
-//import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -46,7 +43,7 @@ public class GoogleOauthServer implements Runnable {
 	private static final java.io.File DATA_STORE_DIR = new java.io.File(
 			System.getProperty("user.home"), ".credentials/drive-java-client");
 
-	public static boolean isDone = false;
+	public boolean isDone = false;
 	
 	public static void main(String[] args) throws Exception {
 		new GoogleOauthServer().startJetty();
@@ -92,6 +89,10 @@ public class GoogleOauthServer implements Runnable {
     }
 
 	class SigninServlet extends HttpServlet {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		List<String> scopes = Arrays.asList("openid", "email", "https://www.googleapis.com/auth/drive.appdata", "https://www.googleapis.com/auth/drive.scripts", "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive.metadata.readonly", "https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.metadata", "https://www.googleapis.com/auth/drive.photos.readonly");
 		
 		@Override
@@ -111,6 +112,11 @@ public class GoogleOauthServer implements Runnable {
 	}
 
 	class CallbackServlet extends HttpServlet {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,IOException {
 			// google redirects with
@@ -160,7 +166,7 @@ public class GoogleOauthServer implements Runnable {
 
 			// get some info about the user with the access token
 			String json = get(new StringBuilder("https://www.googleapis.com/oauth2/v1/userinfo?access_token=").append(accessToken).toString());
-
+			json.length();
 			// now we could store the email address in session
 
 			// return the json of the user's basic info

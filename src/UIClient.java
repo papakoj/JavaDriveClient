@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -14,7 +13,6 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class UIClient extends Application {

@@ -16,13 +16,13 @@ import com.google.api.services.drive.model.FileList;
 //import utils.IOUtils;
 
 public class GoogleConnector implements Connector<File> {
-	
+
 	private boolean initialDownload;
 
 	private Drive service;
 
 	public HashMap<String, MyFile> index = new HashMap<>();
-	
+
 
 	public GoogleConnector(Drive service) throws IOException {
 		this.service = service;
@@ -39,7 +39,7 @@ public class GoogleConnector implements Connector<File> {
 			System.out.println("No files found.");
 		} else {
 			for (File file : files) {
-				//				System.out.printf("%s (%s)\n", file.getName(), file.getId());
+				System.out.printf("%s (%s)\n", file.getName(), file.getId());
 			}
 		}
 		return files;
@@ -71,7 +71,7 @@ public class GoogleConnector implements Connector<File> {
 		return files;
 	}
 
-	
+
 	public List<File> downloadFilesInFolder(String id, java.io.File folderPath) throws IOException {
 		FileList result = this.service.files().list()
 				.setQ("'" + id + "' in parents")
@@ -95,16 +95,16 @@ public class GoogleConnector implements Connector<File> {
 		return files;
 	}
 
-	
+
 	public InputStream get1(String key) throws IOException {
 		throw new UnsupportedOperationException("Method get1 is not supported by GDrive");
 	}
-	
+
 
 	public InputStream get(String key) throws IOException{
 		return service.files().get(key).executeMediaAsInputStream();
 	}
-	
+
 
 	public void indexFiles() {
 		index.clear();
@@ -179,12 +179,12 @@ public class GoogleConnector implements Connector<File> {
 	}
 
 	public boolean changedFile(File file) {
-			MyFile f = index.get(file.getId());
-			if (f.getLastModified().getValue() < file.getModifiedTime().getValue()) {
-//				System.out.println("changed" + file.getName());
-				return true;
-			}
-			return false;
+		MyFile f = index.get(file.getId());
+		if (f.getLastModified().getValue() < file.getModifiedTime().getValue()) {
+			//				System.out.println("changed" + file.getName());
+			return true;
+		}
+		return false;
 	}
 
 	public String put(java.io.File localFile) throws IOException{

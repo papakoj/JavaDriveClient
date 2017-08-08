@@ -1,7 +1,6 @@
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class UploadTest {
@@ -11,7 +10,6 @@ public class UploadTest {
 	public UploadTest(GoogleConnector googleConnector) {
 		index = googleConnector.index;
 //		listFiles(Constants.testFolder);
-//		System.out.println("this is index to start " + index.values().toString());
 		makeMap(Constants.testFolder);
 		System.out.println(fileMap.entrySet().toString());
 	}
@@ -31,7 +29,6 @@ public class UploadTest {
 				retList.add(listOfFiles[i]);
 				for (MyFile s : index.values()) {
 					if (s.getName().equals(fileName)) {
-						
 					}
 				}
 			} else if (listOfFiles[i].isDirectory()) {

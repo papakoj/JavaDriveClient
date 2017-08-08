@@ -5,7 +5,6 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.json.JsonFactory;
 
-import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.*;
 
 import com.google.api.services.drive.Drive;
@@ -42,8 +41,9 @@ public class Quickstart {
 	 * If modifying these scopes, delete your previously saved credentials
 	 * at ~/.credentials/drive-java-client
 	 */
-	private static final java.util.Collection<String> SCOPES =
-			DriveScopes.all();
+//	private static final java.util.Collection<String> SCOPES =
+//			DriveScopes.all();
+	
 	static {
 		try {
 			HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -53,8 +53,8 @@ public class Quickstart {
 		}
 	}
 
-	private static Drive service;
-	private static GoogleConnector gC;
+	private Drive service;
+	private GoogleConnector gC;
 	
 
 	public Quickstart() {
@@ -121,14 +121,16 @@ public class Quickstart {
 				.build();
 	}
 
-	public static void index() {
+	public void index() {
 		gC.indexFiles();
 		UploadTest test = new UploadTest(gC);
+		test.checkForChanges();
 	}
 	
-	public static void syncDrive(java.io.File storeDirectory) {
+	public void syncDrive(java.io.File storeDirectory) {
 		try {
 			List<File> rootList = gC.downloadRootFolders(storeDirectory);
+			rootList.size();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
