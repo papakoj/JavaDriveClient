@@ -124,7 +124,16 @@ public class Quickstart {
 	public void index() {
 		gC.indexFiles();
 		UploadTest test = new UploadTest(gC);
-		test.checkForChanges();
+		System.out.println("done indexing");
+		while (true) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			test.checkForChanges();
+		}
 	}
 	
 	public void syncDrive(java.io.File storeDirectory) {
