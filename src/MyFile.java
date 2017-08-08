@@ -2,19 +2,19 @@ import com.google.api.client.util.DateTime;
 
 public class MyFile {
 	
-	private static String name;
-	private static DateTime lastModified;
+	private String name;
+	private DateTime lastModified;
 	
 	public MyFile(String name, DateTime lastModified) {
 		this.name = name;
 		this.lastModified = lastModified;
 	}
 	
-	public static String getName() {
+	public String getName() {
 		return name;
 	}
 	
-	public static DateTime getLastModified() {
+	public DateTime getLastModified() {
 		return lastModified;
 	}
 	

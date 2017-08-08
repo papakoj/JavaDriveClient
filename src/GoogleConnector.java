@@ -21,7 +21,8 @@ public class GoogleConnector implements Connector<File> {
 
 	private Drive service;
 
-	private HashMap<String, MyFile> index = new HashMap<>();
+	public HashMap<String, MyFile> index = new HashMap<>();
+	
 
 	public GoogleConnector(Drive service) throws IOException {
 		this.service = service;
@@ -126,7 +127,6 @@ public class GoogleConnector implements Connector<File> {
 					if (!index.containsKey(file.getId())) {
 						MyFile myFile = new MyFile(file.getName(), file.getModifiedTime());
 						index.put(file.getId(), myFile);
-//						System.out.println(myFile.toString());
 					}
 				}
 			}

@@ -123,6 +123,7 @@ public class Quickstart {
 
 	public static void index() {
 		gC.indexFiles();
+		UploadTest test = new UploadTest(gC);
 	}
 	
 	public static void syncDrive(java.io.File storeDirectory) {

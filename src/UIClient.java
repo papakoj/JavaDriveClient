@@ -87,7 +87,7 @@ public class UIClient extends Application {
 //					File f = new File(System.getProperty("user.home"));
 					if (Constants.testFolder != null) {
 						quickstart.index();
-						quickstart.syncDrive(Constants.testFolder);
+//						quickstart.syncDrive(Constants.testFolder);
 					}
 				}
 			});
