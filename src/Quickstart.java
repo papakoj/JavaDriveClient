@@ -41,9 +41,9 @@ public class Quickstart {
 	 * If modifying these scopes, delete your previously saved credentials
 	 * at ~/.credentials/drive-java-client
 	 */
-//	private static final java.util.Collection<String> SCOPES =
-//			DriveScopes.all();
-	
+	//	private static final java.util.Collection<String> SCOPES =
+	//			DriveScopes.all();
+
 	static {
 		try {
 			HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -55,7 +55,7 @@ public class Quickstart {
 
 	private Drive service;
 	private GoogleConnector gC;
-	
+
 
 	public Quickstart() {
 		try {
@@ -123,23 +123,28 @@ public class Quickstart {
 
 	public void index() {
 		gC.indexFiles();
-		UploadTest test = new UploadTest(gC);
+//		UploadTest test = new UploadTest(gC);
 		System.out.println("done indexing");
+	}
+
+	public void updateLocal() {
+		UploadTest test = new UploadTest(gC);
 		while (true) {
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			index();
 			test.checkForChanges();
 		}
 	}
-	
+
 	public void syncDrive(java.io.File storeDirectory) {
 		try {
 			List<File> rootList = gC.downloadRootFolders(storeDirectory);
-			rootList.size();
+			System.out.println(rootList.size());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

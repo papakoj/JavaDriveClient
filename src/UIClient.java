@@ -39,8 +39,8 @@ public class UIClient extends Application {
 			final Scene settings = new Scene(settingsGrid, 300, 250);
 			final Button newBtn = new Button("Done with authorization");
 			settingsGrid.add(newBtn, 1, 0);
+			
 			btn.setOnAction(new EventHandler<ActionEvent>() {
-
 				@Override
 				public void handle(ActionEvent event) {
 					System.out.println("Hello World!");
@@ -48,9 +48,8 @@ public class UIClient extends Application {
 					t.start();
 				}
 			});
-
+			
 			newBtn.setOnAction(new EventHandler<ActionEvent>() {
-
 				@Override
 				public void handle(ActionEvent event) {
 					if (googleOauthServer.isDone) {
@@ -60,10 +59,8 @@ public class UIClient extends Application {
 					} else {
 						notReadyText.setText("Not done.");
 					}
-
 				}
 			});
-
 
 			StackPane root = new StackPane();
 			root.getChildren().add(btn);
@@ -75,7 +72,6 @@ public class UIClient extends Application {
 			Button selectStorage = new Button("Select storage location");
 			final Quickstart quickstart = new Quickstart();
 			selectStorage.setOnAction(new EventHandler<ActionEvent>() {
-			
 				@Override
 				public void handle(ActionEvent event) {
 //					DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -85,14 +81,14 @@ public class UIClient extends Application {
 //					File f = new File(System.getProperty("user.home"));
 					if (Constants.testFolder != null) {
 						quickstart.index();
-//						quickstart.syncDrive(Constants.testFolder);
+						quickstart.syncDrive(Constants.testFolder);
+						quickstart.updateLocal();
 					}
 				}
 			});
 			
 			Button reSync = new Button("ReSync");
 			reSync.setOnAction(new EventHandler<ActionEvent>() {
-			
 				@Override
 				public void handle(ActionEvent event) {
 					if (Constants.testFolder != null) {
@@ -104,14 +100,11 @@ public class UIClient extends Application {
 			loggedinGrid.add(reSync, 0, 1);
 			primaryStage.setScene(loggedInScene);
 			primaryStage.show();
-		
-
 		}
 	}
 
 	public static boolean alreadyAuthorized() {
 		JSONParser parser = new JSONParser();
-
 		Object obj = null;
 		try {
 			obj = parser.parse(new FileReader(DATA_STORE_DIR));

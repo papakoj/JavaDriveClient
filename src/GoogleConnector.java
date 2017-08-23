@@ -131,6 +131,7 @@ public class GoogleConnector implements Connector<File> {
 				}
 			}
 		}
+//		System.out.println(index.entrySet().toString());
 	}
 
 	public Long get(File file, String key, java.io.File tempFile, String type) throws IOException{
@@ -193,24 +194,54 @@ public class GoogleConnector implements Connector<File> {
 		String newID = service.files().create(newFile, mediaContent)
 				.setFields("id")
 				.execute().getId();
-		System.out.println(newID);
 		return newID;
 
 	}  
 
-	public String update(String key, java.io.File localFile) throws IOException{
-		delete(key);
-		return put(localFile);
+	public String update(String key, java.io.File localFile) {
+		String ret = null;
+		try {
+			delete(key);
+			ret = put(localFile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
+	public File updateFile(String key, java.io.File localFile) {
+		String tempKey = null;
+		try {
+			delete(key);
+			tempKey = put(localFile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			// First retrieve the file from the API.
+			File file = service.files().get(tempKey).execute();
+			file.setId(key);
+			// Send the request to the API.
+			File updatedFile = service.files().update(key, file).execute();
+			return updatedFile;
+		} catch (IOException e) {
+			System.out.println("An error occurred: " + e);
+			return null;
+		}
 	}
 
 
-	public void delete(String key) throws IOException{
+	public String delete(String key) throws IOException{
+		String s = null;
 		try {
 			this.service.files().delete(key).execute();
+			s = "deleted";
 		} catch (GoogleJsonResponseException e) {
 			System.out.println("Error: File not found");
 		}
-
+		return s;
 	}
 
 

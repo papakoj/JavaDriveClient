@@ -103,7 +103,7 @@ public class GoogleOauthServer implements Runnable {
 					.append("&response_type=code")
 					.append("&redirect_uri=http://localhost:8089/callback") // the servlet that google redirects to after authorization
 //					.append("&state=this_can_be_anything_to_help_correlate_the_response%3Dlike_session_id")
-					.append("&scope=openid%20profile%20email%20https://www.googleapis.com/auth/drive%20https://www.googleapis.com/auth/drive.metadata%20https://www.googleapis.com/auth/drive.file%20https://www.googleapis.com/auth/drive.metadata")
+					.append("&scope=openid%20profile%20email%20https://www.googleapis.com/auth/drive%20https://www.googleapis.com/auth/drive.metadata%20https://www.googleapis.com/auth/drive.file%20https://www.googleapis.com/auth/drive.appdata")
 					.append("&access_type=offline") // here we are asking to access to user's data while they are not signed in
 					.append("&approval_prompt=force"); // this requires them to verify which account to use, if they are already signed in
 

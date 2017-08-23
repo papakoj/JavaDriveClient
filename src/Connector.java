@@ -27,11 +27,14 @@ public interface Connector<T> {
 	 * Update content of a file in drive
 	 */
 	public String update(String key, java.io.File localFile) throws IOException;
+	
+	public com.google.api.services.drive.model.File updateFile(String key, java.io.File localFile);
 
 	/**
 	 * Delete a file in drive
+	 * @return 
 	 */
-	public void delete(String key) throws Exception;
+	public String delete(String key) throws Exception;
 	
 	public Long getGDocs(String key, java.io.File tempFile, String type) throws IOException;
 }
